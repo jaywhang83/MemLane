@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/add"
+        android:icon="@drawable/outline_add_box_black_18dp"
+        app:showAsAction="ifRoom"
+        android:title="New Route" />
+
+    <item
+        android:id="@+id/delete"
+        android:icon="@drawable/outline_delete_forever_black_18dp"
+        app:showAsAction="ifRoom"
+        android:title="Delete Route" />
+
+</menu>
