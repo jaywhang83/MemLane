@@ -92,6 +92,8 @@ public class SavedRouteActivity extends AppCompatActivity implements OnMapReadyC
         mMap.setOnCameraIdleListener(mClusterManager);
         mMap.setOnMarkerClickListener(mClusterManager);
         mMap.setOnInfoWindowClickListener(mClusterManager);
+        // When cluster marker is clicked opens the dialog box that fives option of getting direction
+        // or view all the pictures
         mClusterManager.setOnClusterClickListener(
                 new ClusterManager.OnClusterClickListener<ClusterMarker>() {
                     // When the cluster is clicked AlertDialog is displayed
@@ -124,16 +126,18 @@ public class SavedRouteActivity extends AppCompatActivity implements OnMapReadyC
 
                         // Animate camera to the bounds
                         try {
-                            // Open AlertDialog
-                            buildOptions(SavedRouteActivity.this, lastpoint, urls);
                             mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 200));
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-
+                        // Open AlertDialog
+                        buildOptions(SavedRouteActivity.this, lastpoint, urls);
                         return true;
                     }
                 });
+
+        // When cluster item marker is clicked opens the dialog box that fives option of getting direction
+        // or view all the pictures
         mClusterManager.setOnClusterItemClickListener(
                 new ClusterManager.OnClusterItemClickListener<ClusterMarker>() {
                     // When the cluster item is clicked AlertDialog is displayed
@@ -149,6 +153,7 @@ public class SavedRouteActivity extends AppCompatActivity implements OnMapReadyC
                         return true;
                     }
                 });
+
         // TODO: Implement infoWindow
         mClusterManager.setOnClusterInfoWindowClickListener(
                 new ClusterManager.OnClusterInfoWindowClickListener<ClusterMarker>() {

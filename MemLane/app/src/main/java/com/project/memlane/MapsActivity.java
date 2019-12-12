@@ -2,10 +2,12 @@ package com.project.memlane;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -14,6 +16,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -307,20 +310,23 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.setOnCameraIdleListener(mClusterManager);
         mMap.setOnMarkerClickListener(mClusterManager);
         mMap.setOnInfoWindowClickListener(mClusterManager);
+        // When cluster marker is clicked opens the dialog box that fives option of getting direction
+        // or view all the pictures
         mClusterManager.setOnClusterClickListener(
                 new ClusterManager.OnClusterClickListener<ClusterMarker>() {
                     @Override
                     public boolean onClusterClick(Cluster<ClusterMarker> cluster) {
+                        LatLng lastpoint = null;
                         LatLngBounds.Builder builder = LatLngBounds.builder();
                         for (ClusterItem item : cluster.getItems()) {
                             builder.include(item.getPosition());
+                            lastpoint = item.getPosition();
                         }
                         // Get the LatLngBounds
                         final LatLngBounds bounds = builder.build();
 
                         // Animate camera to the bounds
                         try {
-                            Toast.makeText(MapsActivity.this, "Cluster item click", Toast.LENGTH_SHORT).show();
                             mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 200));
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -330,20 +336,26 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         for (ClusterMarker c : cluster.getItems()) {
                            urls.add(c.getIconPicture());
                         }
-                        Intent intent = new Intent(getApplicationContext(), PicturesActivity.class);
-                        intent.putExtra("urls", urls);
-                        startActivity(intent);
+                        // Open AlertDialog
+                        buildOptions(MapsActivity.this, lastpoint, urls);
                         return true;
                     }
                 });
+
+        // When cluster item marker is clicked opens the dialog box that fives option of getting direction
+        // or view all the pictures
         mClusterManager.setOnClusterItemClickListener(
                 new ClusterManager.OnClusterItemClickListener<ClusterMarker>() {
                     @Override
                     public boolean onClusterItemClick(ClusterMarker clusterMarker) {
-                        return false;
+                        ArrayList<String> singlePic = new ArrayList<>();
+                        singlePic.add(clusterMarker.getIconPicture());
+                        buildOptions(MapsActivity.this, clusterMarker.getPosition(), singlePic);
+                        return true;
                     }
                 });
 
+        // TODO: Implement infoWindow
         mClusterManager.setOnClusterInfoWindowClickListener(
                 new ClusterManager.OnClusterInfoWindowClickListener<ClusterMarker>() {
                     @Override
@@ -527,5 +539,33 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mClusterManager.addItem(mMarker);
         mClusterManager.cluster();
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(lastKnownLatLng, DEFAULT_ZOOM));
+    }
+
+    // Creates AlertDialog that will open when cluster marker is clicked
+    private void buildOptions(Context context, final LatLng lastLocation, final ArrayList<String> urls) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.Theme_MaterialComponents_Dialog);
+        builder.setTitle("Menu");
+        builder.setNegativeButton("Direction", new DialogInterface.OnClickListener() {
+            // Directions button will give direction to the location of the piture takne
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Intent mapIntent = new Intent(android.content.Intent.ACTION_VIEW, Uri.parse("http://maps.google.com/maps?q=loc:"+lastLocation.latitude +", " + lastLocation.longitude));
+                startActivity(mapIntent);
+            }
+        });
+        builder.setPositiveButton("View Pictures", new DialogInterface.OnClickListener() {
+            // Will show all of the photos taken at the location
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Intent intent = new Intent(getApplicationContext(), PicturesActivity.class);
+                intent.putExtra("urls", urls);
+                startActivity(intent);
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.RED);
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.RED);
     }
 }
